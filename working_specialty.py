@@ -20,6 +20,7 @@ num = -1
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    bot.send_message(message.chat.id, '1')
     con = sqlite3.connect("user_names.db")
     cur = con.cursor()
     cur.execute(
