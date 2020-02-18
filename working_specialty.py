@@ -1,5 +1,6 @@
 import telebot
 from telebot import types
+import sqlite3
 
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
@@ -19,13 +20,15 @@ num = -1
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    con = sqlite3.connect("user_names.db")
+    cur = con.cursor()
+    
     bot.send_message(message.chat.id, 'Привет, выбери направление', reply_markup=keyboard1)
 
 
 @bot.message_handler(content_types=['text'])
 def send_text(message):
     global num
-    global flag
     if message.text.lower() == 'гуманитарное':
         num = 0
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
@@ -35,8 +38,9 @@ def send_text(message):
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'гуманитарно-техническое':
-        flag = list_pf_spec[2]
-        bot.send_message(message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
+        num = 2
+        bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарно-техническое направление?',
+                         reply_markup=keyboard_answer)
     elif message.text.lower() == 'я тебя люблю':
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
     elif message.text.lower() == 'показать направление':
