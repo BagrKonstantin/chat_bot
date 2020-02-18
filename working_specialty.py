@@ -23,6 +23,13 @@ tel_id = 0
 def start_message(message):
     global flag
     global tel_id
+    inform = ''
+    if message.from_user.first_name:
+        inform += message.from_user.first_name + ' '
+    if message.from_user.last_name:
+        inform += message.from_user.last_name + ' '
+    if message.from_user.username:
+        inform += message.from_user.username + ' '
     tel_id = message.from_user.id
     con = sqlite3.connect("user_names")
     cur = con.cursor()
@@ -30,8 +37,8 @@ def start_message(message):
         "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
     if not result:
         cur.execute(
-            "INSERT INTO users_id_and_type_of_news (id_in_telegram,type_of_news) VALUES({},'Гуманитарно-техническое')".format(
-                tel_id))
+            "INSERT INTO users_id_and_type_of_news (id_in_telegram,type_of_news, info) VALUES({},'Гуманитарно-техническое','{}')".format(
+                tel_id, inform))
         con.commit()
         bot.send_message(message.chat.id, 'Мы внесли вас в Базу Данных')
     else:
@@ -76,12 +83,18 @@ def callback_worker(call):
         flag = list_pf_spec[num]
         con = sqlite3.connect("user_names")
         cur = con.cursor()
-        cur.execute(
-            "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag,
-                                                                                                        tel_id))
-        con.commit()
+        result = len(cur.execute(
+            "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
+        if not result:
+            bot.send_message(call.message.chat.id, 'Вы не зарегистрированы, нажмите /start',
+                             reply_markup=keyboard1)
+        else:
+            cur.execute(
+                "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag,
+                                                                                                            tel_id))
+            con.commit()
+            bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
         con.close()
-        bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                          reply_markup=keyboard1)
