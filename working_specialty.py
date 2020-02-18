@@ -22,8 +22,12 @@ num = -1
 def start_message(message):
     con = sqlite3.connect("user_names.db")
     cur = con.cursor()
-    
-    bot.send_message(message.chat.id, 'Привет, выбери направление', reply_markup=keyboard1)
+    cur.execute(
+        "INSERT INTO users_id_and_type_of_news(id_in_telegram,type_of_news) VALUES({},'Гуманитарно-техническое')".format(
+            message.from_user.id))
+    con.close()
+    bot.send_message(message.chat.id, 'Привет, выбери направление, сейчас: Гуманитарно-техническое',
+                     reply_markup=keyboard1)
 
 
 @bot.message_handler(content_types=['text'])
