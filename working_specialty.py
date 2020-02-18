@@ -41,6 +41,8 @@ def send_text(message):
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
     elif message.text.lower() == 'показать направление':
         bot.send_message(message.chat.id, flag)
+    else:
+        bot.send_message(message.chat.id, 'Я вас не понимаю')
 
 
 @bot.callback_query_handler(func=lambda call: True)
