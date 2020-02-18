@@ -26,7 +26,7 @@ def send_text(message):
     global flag
     if message.text.lower() == 'гуманитарное':
         num = 0
-        bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
+        bot.send_message(message.chat.id, '1',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'техническое':
         num = 1
