@@ -25,15 +25,17 @@ def send_text(message):
     elif message.text.lower() == 'техническое':
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
                          reply_markup=keyboard_answer)
+    elif message.text.lower() == 'не имеет значения':
+        bot.send_message(message.chat.id, 'Хорошо, вам будут приходить все новости')
     elif message.text.lower() == 'я тебя люблю':
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
-    if call.data == "Yes":
+    if call.data == "yes":
         bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по вашему направлению');
-    elif call.data == "No":
+    elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                          reply_markup=keyboard1)
 
