@@ -3,7 +3,7 @@ from telebot import types
 
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
-keyboard1 = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+keyboard1 = telebot.types.ReplyKeyboardMarkup()
 keyboard1.add('Гуманитарное', 'Техническое', 'Гум-тех', 'Показать направление')
 keyboard_answer = types.InlineKeyboardMarkup()
 key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
