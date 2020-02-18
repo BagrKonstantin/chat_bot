@@ -38,6 +38,7 @@ def callback_worker(call):
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                          reply_markup=keyboard1)
+    bot.delete_message(call.message.chat.id, call.message.chat.id)
 
 
 @bot.message_handler(content_types=['sticker'])
