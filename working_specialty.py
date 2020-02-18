@@ -34,7 +34,7 @@ def send_text(message):
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'гум-тех':
         flag = list_pf_spec[num]
-        bot.send_message(message.chat.id, 'Хорошо, вам будут приходить все новости')
+        bot.send_message(message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif message.text.lower() == 'я тебя люблю':
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
     elif message.text.lower() == 'показать направление':
@@ -46,7 +46,7 @@ def callback_worker(call):
     global flag
     if call.data == "yes":
         flag = list_pf_spec[num]
-        bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по вашему направлению')
+        bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                          reply_markup=keyboard1)
