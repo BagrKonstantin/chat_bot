@@ -21,11 +21,12 @@ num = -1
 @bot.message_handler(commands=['start'])
 def start_message(message):
     bot.send_message(message.chat.id, '1')
-    con = sqlite3.connect("user_names.db")
+    con = sqlite3.connect("user_names")
     cur = con.cursor()
     cur.execute(
-        "INSERT INTO users_id_and_type_of_news(id_in_telegram,type_of_news) VALUES({},'Гуманитарно-техническое')".format(
+        "INSERT INTO users_id_and_type_of_news (id_in_telegram,type_of_news) VALUES({},'Гуманитарно-техническое')".format(
             message.from_user.id))
+    con.commit()
     con.close()
     bot.send_message(message.chat.id, 'Привет, выбери направление, сейчас: Гуманитарно-техническое',
                      reply_markup=keyboard1)
@@ -59,6 +60,13 @@ def callback_worker(call):
     global flag
     if call.data == "yes":
         flag = list_pf_spec[num]
+        con = sqlite3.connect("user_names")
+        cur = con.cursor()
+        cur.execute(
+            "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag,
+                call.message.from_user.id))
+        con.commit()
+        con.close()
         bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
