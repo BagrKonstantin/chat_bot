@@ -4,13 +4,15 @@ from telebot import types
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
 keyboard1 = telebot.types.ReplyKeyboardMarkup()
-keyboard1.add('Гуманитарное').add('Техническое').add('Гум-тех').add('Показать направление')
+keyboard1.add('Гуманитарное', 'Техническое')
+keyboard1.add('Гуманитарно-техническое')
+keyboard1.add('Показать направление')
 keyboard_answer = types.InlineKeyboardMarkup()
 key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
 keyboard_answer.add(key_yes)
 key_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
 keyboard_answer.add(key_no)
-list_pf_spec = ['Гуманитарное', 'Техническое', 'Гум-тех']
+list_pf_spec = ['Гуманитарное', 'Техническое', 'Гуманитарно-техническое']
 flag = list_pf_spec[2]
 num = -1
 
@@ -32,7 +34,7 @@ def send_text(message):
         num = 1
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
                          reply_markup=keyboard_answer)
-    elif message.text.lower() == 'гум-тех':
+    elif message.text.lower() == 'гуманитарно-техническое':
         flag = list_pf_spec[2]
         bot.send_message(message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif message.text.lower() == 'я тебя люблю':
