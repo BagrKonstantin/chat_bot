@@ -33,7 +33,7 @@ def send_text(message):
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'гум-тех':
-        flag = list_pf_spec[num]
+        flag = list_pf_spec[2]
         bot.send_message(message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
     elif message.text.lower() == 'я тебя люблю':
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
