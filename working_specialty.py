@@ -55,7 +55,6 @@ def start_message(message):
 
 @bot.message_handler(content_types=['text'])
 def send_text(message):
-    print(message.text)
     global num
     global tel_id
     tel_id = message.from_user.id
