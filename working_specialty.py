@@ -17,12 +17,20 @@ list_pf_spec = ['Гуманитарное', 'Техническое', 'Гума�
 flag = list_pf_spec[2]
 num = -1
 tel_id = 0
+black_list = ['799056502']
+
+
+class WrongCategoryName(Exception):
+    pass
 
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
     global flag
     global tel_id
+    tel_id = message.from_user.id
+    if tel_id in black_list:
+        return
     inform = ''
     if message.from_user.first_name:
         inform += message.from_user.first_name + ' '
@@ -30,7 +38,6 @@ def start_message(message):
         inform += message.from_user.last_name + ' '
     if message.from_user.username:
         inform += message.from_user.username + ' '
-    tel_id = message.from_user.id
     con = sqlite3.connect("user_names")
     cur = con.cursor()
     result = len(cur.execute(
@@ -53,11 +60,38 @@ def start_message(message):
                      reply_markup=keyboard1)
 
 
+@bot.channel_post_handler(content_types=['text'])
+def send_text(message):
+    if '/post' in message.text:
+        try:
+            result = []
+            con = sqlite3.connect("user_names")
+            cur = con.cursor()
+            if 'гуманитарно-техническое' in message.text.lower():
+                result = cur.execute(
+                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news").fetchall()
+            elif 'техническое' in message.text.lower():
+                result = cur.execute(
+                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news WHERE type_of_news = 'Техническое' OR type_of_news = 'Гуманитарно-техническое'").fetchall()
+            elif 'гуманитарное' in message.text.lower():
+                result = cur.execute(
+                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news WHERE type_of_news = 'Гуманитарное OR type_of_news = 'Гуманитарно-техническое''").fetchall()
+            if not len(result):
+                raise WrongCategoryName
+            for i in result:
+                bot.send_message(i[0], 'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
+        except Exception as error:
+            bot.send_message(message.chat.id, 'Ошибка: {}'.format(error.__class__.__name__))
+
+
 @bot.message_handler(content_types=['text'])
 def send_text(message):
+    print(message.text, message.from_user.id)
     global num
     global tel_id
     tel_id = message.from_user.id
+    if tel_id in black_list:
+        return
     if message.text.lower() == 'гуманитарное':
         num = 0
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
@@ -73,7 +107,11 @@ def send_text(message):
     elif message.text.lower() == 'я тебя люблю':
         bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
     elif message.text.lower() == 'показать направление':
-        bot.send_message(message.chat.id, flag)
+        con = sqlite3.connect("user_names")
+        cur = con.cursor()
+        result = cur.execute(
+            "SELECT type_of_news FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchone()
+        bot.send_message(message.chat.id, result[0])
     else:
         bot.send_message(message.chat.id, 'Я вас не понимаю')
 
