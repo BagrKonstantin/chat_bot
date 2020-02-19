@@ -8,11 +8,13 @@ keyboard1 = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard1.add('Гуманитарное', 'Техническое')
 keyboard1.add('Гуманитарно-техническое')
 keyboard1.add('Показать направление')
+
 keyboard_answer = types.InlineKeyboardMarkup()
 key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
 keyboard_answer.add(key_yes)
 key_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
 keyboard_answer.add(key_no)
+
 list_pf_spec = ['Гуманитарное', 'Техническое', 'Гуманитарно-техническое']
 flag = list_pf_spec[2]
 num = -1
@@ -21,6 +23,10 @@ black_list = [799056502]
 
 
 class WrongCategoryName(Exception):
+    pass
+
+
+class PostFormatError(Exception):
     pass
 
 
@@ -56,36 +62,38 @@ def start_message(message):
         "SELECT type_of_news FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchone()[0]
     con.close()
     bot.send_message(message.chat.id,
-                     'Привет🌟\nВыбери направление,которое тебе интересно или которое ты хочешь узнать, сейчас: {} направление'.format(
-                         flag),
-                     reply_markup=keyboard1)
+                     '''Привет🌟\nВыбери направление,которое тебе интересно 
+                     или которое ты хочешь узнать, сейчас: {} направление'''.format(flag), reply_markup=keyboard1)
 
 
 @bot.channel_post_handler(content_types=['text'])
 def send_text(message):
-    if '/post' in message.text:
+    if '/post' in message.text.split('\n')[0]:
         try:
+            if message.text.split('\n') == 1:
+                raise PostFormatError
             result = []
             con = sqlite3.connect("user_names")
             cur = con.cursor()
-            if 'гуманитарно-техническое' in message.text.lower():
+            if 'гуманитарно-техническое' in message.text.split('\n')[0].lower():
                 result = cur.execute(
                     "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news").fetchall()
-            elif 'техническое' in message.text.lower():
+            elif 'техническое' in message.text.split('\n')[0].lower():
                 result = cur.execute(
                     """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news 
                     WHERE type_of_news = 'Техническое' OR type_of_news = 'Гуманитарно-техническое'""").fetchall()
-            elif 'гуманитарное' in message.text.lower():
+            elif 'гуманитарно' in message.text.split('\n')[0].lower():
                 result = cur.execute(
-                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news
-                     WHERE type_of_news = 'Гуманитарное OR type_of_news = 'Гуманитарно-техническое''""").fetchall()
+                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news 
+                    WHERE type_of_news = 'Гуманитарное' OR type_of_news = 'Гуманитарно-техническое'""").fetchall()
             if not len(result):
                 raise WrongCategoryName
             for i in result:
                 bot.send_message(i[0],
                                  'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
+            bot.send_message(message.chat.id, 'Сообщение отправлено @working_specialty_bot')
         except Exception as error:
-            bot.send_message(message.chat.id, 'Ошибка: {}'.format(error.__class__.__name__))
+            bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
 
 
 @bot.message_handler(content_types=['text'])
