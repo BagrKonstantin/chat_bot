@@ -47,7 +47,9 @@ def start_message(message):
     flag = cur.execute(
         "SELECT type_of_news FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchone()[0]
     con.close()
-    bot.send_message(message.chat.id, 'Привет🌟\nВыбери направление,которое тебе интересно или которое ты хочешь узнать, сейчас: {} направление'.format(flag),
+    bot.send_message(message.chat.id,
+                     'Привет🌟\nВыбери направление,которое тебе интересно или которое ты хочешь узнать, сейчас: {} направление'.format(
+                         flag),
                      reply_markup=keyboard1)
 
 
