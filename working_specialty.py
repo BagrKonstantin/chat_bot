@@ -17,7 +17,7 @@ list_pf_spec = ['Гуманитарное', 'Техническое', 'Гума�
 flag = list_pf_spec[2]
 num = -1
 tel_id = 0
-black_list = ['799056502']
+black_list = [799056502]
 
 
 class WrongCategoryName(Exception):
@@ -44,7 +44,8 @@ def start_message(message):
         "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
     if not result:
         cur.execute(
-            "INSERT INTO users_id_and_type_of_news (id_in_telegram,type_of_news, info) VALUES({},'Гуманитарно-техническое','{}')".format(
+            """INSERT INTO users_id_and_type_of_news 
+            (id_in_telegram,type_of_news, info) VALUES({},'Гуманитарно-техническое','{}')""".format(
                 tel_id, inform))
         con.commit()
         bot.send_message(message.chat.id, 'Мы внесли вас в Базу Данных\nСейчас я расскажу вам]')
@@ -72,14 +73,17 @@ def send_text(message):
                     "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news").fetchall()
             elif 'техническое' in message.text.lower():
                 result = cur.execute(
-                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news WHERE type_of_news = 'Техническое' OR type_of_news = 'Гуманитарно-техническое'").fetchall()
+                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news 
+                    WHERE type_of_news = 'Техническое' OR type_of_news = 'Гуманитарно-техническое'""").fetchall()
             elif 'гуманитарное' in message.text.lower():
                 result = cur.execute(
-                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news WHERE type_of_news = 'Гуманитарное OR type_of_news = 'Гуманитарно-техническое''").fetchall()
+                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news
+                     WHERE type_of_news = 'Гуманитарное OR type_of_news = 'Гуманитарно-техническое''""").fetchall()
             if not len(result):
                 raise WrongCategoryName
             for i in result:
-                bot.send_message(i[0], 'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
+                bot.send_message(i[0],
+                                 'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
         except Exception as error:
             bot.send_message(message.chat.id, 'Ошибка: {}'.format(error.__class__.__name__))
 
