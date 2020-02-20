@@ -20,10 +20,22 @@ key_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
 keyboard_answer.add(key_no)
 
 list_pf_spec = ['Гуманитарное', 'Техническое', 'Гуманитарно-техническое']
-flag = list_pf_spec[2]
-num = -1
-tel_id = 0
+
 black_list = [799056502]
+
+dictionary_of_users = {}
+
+
+def dictionary_update():
+    global dictionary_of_users
+    con = sqlite3.connect("user_names")
+    cur = con.cursor()
+    result = cur.execute("SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news").fetchall()
+    for info in result:
+        dictionary_of_users[info[0]] = [info[1], info[1]]
+
+
+dictionary_update()
 
 
 class WrongCategoryName(Exception):
@@ -36,8 +48,6 @@ class PostFormatError(Exception):
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    global flag
-    global tel_id
     tel_id = message.from_user.id
     if tel_id in black_list:
         return
@@ -48,26 +58,23 @@ def start_message(message):
         inform += message.from_user.last_name + ' '
     if message.from_user.username:
         inform += message.from_user.username + ' '
-    con = sqlite3.connect("user_names")
-    cur = con.cursor()
-    result = len(cur.execute(
-        "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
-    if not result:
+    if tel_id not in dictionary_of_users.keys():
+        con = sqlite3.connect("user_names")
+        cur = con.cursor()
         cur.execute(
             """INSERT INTO users_id_and_type_of_news 
             (id_in_telegram,type_of_news, info) VALUES({},'Гуманитарно-техническое','{}')""".format(
                 tel_id, inform))
         con.commit()
+        con.close()
         bot.send_message(message.chat.id, 'Мы внесли вас в Базу Данных')
+        dictionary_update()
     else:
         bot.send_message(message.chat.id, 'Вы уже в нашей базе данных')
-
-    flag = cur.execute(
-        "SELECT type_of_news FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchone()[0]
-    con.close()
     bot.send_message(message.chat.id,
                      'Привет🌟\nВыбери направление,которое тебе интересно или' +
-                     ' которое ты хочешь узнать, сейчас: {} направление'.format(flag), reply_markup=keyboard_main)
+                     ' которое ты хочешь узнать, сейчас: {} направление'.format(dictionary_of_users[tel_id][0]),
+                     reply_markup=keyboard_main)
 
 
 @bot.channel_post_handler(content_types=['text'])
@@ -103,8 +110,6 @@ def send_text(message):
 @bot.message_handler(content_types=['text'])
 def send_text(message):
     print(message.text, message.from_user.id)
-    global num
-    global tel_id
     tel_id = message.from_user.id
     if tel_id in black_list:
         return
@@ -112,15 +117,15 @@ def send_text(message):
         bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
                          reply_markup=keyboard_with_chose)
     elif message.text.lower() == 'гуманитарное':
-        num = 0
+        dictionary_of_users[tel_id][1] = list_pf_spec[0]
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'техническое':
-        num = 1
+        dictionary_of_users[tel_id][1] = list_pf_spec[1]
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'гуманитарно-техническое':
-        num = 2
+        dictionary_of_users[tel_id][1] = list_pf_spec[2]
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарно-техническое направление?',
                          reply_markup=keyboard_answer)
     elif message.text.lower() == 'я тебя люблю':
@@ -137,24 +142,27 @@ def send_text(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
-    global flag
+    tel_id = call.message.chat.id
     if call.data == "yes":
-        flag = list_pf_spec[num]
-        con = sqlite3.connect("user_names")
-        cur = con.cursor()
-        result = len(cur.execute(
-            "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
-        if not result:
+        flag_prev, flag_new = dictionary_of_users[tel_id]
+        if tel_id not in dictionary_of_users.keys():
             bot.send_message(call.message.chat.id, 'Вы не зарегистрированы, нажмите /start',
                              reply_markup=keyboard_main)
-        else:
+        elif flag_new != flag_prev:
+            con = sqlite3.connect("user_names")
+            cur = con.cursor()
             cur.execute(
-                "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag,
+                "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag_new,
                                                                                                             tel_id))
             con.commit()
-            bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag),
+            bot.send_message(call.message.chat.id,
+                             'Хорошо, вам будут приходить новости по направлению {}'.format(flag_new),
                              reply_markup=keyboard_main)
-        con.close()
+            con.close()
+            dictionary_update()
+        else:
+            bot.send_message(call.message.chat.id, 'У вас уже выбранно данное направление',
+                             reply_markup=keyboard_main)
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                          reply_markup=keyboard_main)
