@@ -9,6 +9,10 @@ keyboard1.add('Гуманитарное', 'Техническое')
 keyboard1.add('Гуманитарно-техническое')
 keyboard1.add('Показать направление')
 
+keyboard2 = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+keyboard2.add('Сменить направление')
+keyboard2.add('Показать направление')
+
 keyboard_answer = types.InlineKeyboardMarkup()
 key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
 keyboard_answer.add(key_yes)
@@ -91,9 +95,13 @@ def send_text(message):
             for i in result:
                 bot.send_message(i[0],
                                  'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
-            bot.send_message(message.chat.id, 'Сообщение отправлено @working_specialty_bot')
+            bot.send_message(message.chat.id, 'Сообщение отправлено\n@working_specialty_bot')
+        except WrongCategoryName:
+            bot.send_message(message.chat.id, 'Ошибка, неверное название напраление\n@working_specialty_bot')
+        except PostFormatError:
+            bot.send_message(message.chat.id, 'Ошибка, формат поста\n@working_specialty_bot')
         except Exception as error:
-            bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
+            bot.send_message(message.chat.id, 'Ошибка: {}\n@working_specialty_bot'.format(error.__class__.__name__))
 
 
 @bot.message_handler(content_types=['text'])
@@ -149,7 +157,7 @@ def callback_worker(call):
         con.close()
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
-                         reply_markup=keyboard1)
+                         reply_markup=keyboard2)
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
