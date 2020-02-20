@@ -4,10 +4,14 @@ import sqlite3
 
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
-keyboard1 = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-keyboard1.add('Гуманитарное', 'Техническое')
-keyboard1.add('Гуманитарно-техническое')
-keyboard1.add('Показать направление')
+keyboard_main = telebot.types.ReplyKeyboardMarkup()
+keyboard_main.add('Изменить направление')
+keyboard_main.add('Показать направление')
+
+keyboard_with_chose = telebot.types.ReplyKeyboardMarkup()
+keyboard_with_chose.add('Техническое')
+keyboard_with_chose.add('Гуманитарное')
+keyboard_with_chose.add('Гуманитарно-техническое')
 
 keyboard_answer = types.InlineKeyboardMarkup()
 key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
@@ -62,8 +66,8 @@ def start_message(message):
         "SELECT type_of_news FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchone()[0]
     con.close()
     bot.send_message(message.chat.id,
-                     '''Привет🌟\nВыбери направление,которое тебе интересно 
-                     или которое ты хочешь узнать, сейчас: {} направление'''.format(flag), reply_markup=keyboard1)
+                     'Привет🌟\nВыбери направление,которое тебе интересно или' +
+                     ' которое ты хочешь узнать, сейчас: {} направление'.format(flag), reply_markup=keyboard_main)
 
 
 @bot.channel_post_handler(content_types=['text'])
@@ -104,7 +108,10 @@ def send_text(message):
     tel_id = message.from_user.id
     if tel_id in black_list:
         return
-    if message.text.lower() == 'гуманитарное':
+    if message.text.lower() == 'изменить направление':
+        bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
+                         reply_markup=keyboard_with_chose)
+    elif message.text.lower() == 'гуманитарное':
         num = 0
         bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
                          reply_markup=keyboard_answer)
@@ -139,17 +146,18 @@ def callback_worker(call):
             "SELECT id_in_telegram FROM users_id_and_type_of_news WHERE id_in_telegram = {}".format(tel_id)).fetchall())
         if not result:
             bot.send_message(call.message.chat.id, 'Вы не зарегистрированы, нажмите /start',
-                             reply_markup=keyboard1)
+                             reply_markup=keyboard_main)
         else:
             cur.execute(
                 "UPDATE users_id_and_type_of_news SET type_of_news = '{}' WHERE id_in_telegram = {}".format(flag,
                                                                                                             tel_id))
             con.commit()
-            bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag))
+            bot.send_message(call.message.chat.id, 'Хорошо, вам будут приходить новости по направлению {}'.format(flag),
+                             reply_markup=keyboard_main)
         con.close()
     elif call.data == "no":
         bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
-                         reply_markup=keyboard1)
+                         reply_markup=keyboard_main)
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
 
