@@ -4,11 +4,11 @@ import sqlite3
 
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
-keyboard_main = telebot.types.ReplyKeyboardMarkup()
+keyboard_main = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard_main.add('Изменить направление')
 keyboard_main.add('Показать направление')
 
-keyboard_with_chose = telebot.types.ReplyKeyboardMarkup()
+keyboard_with_chose = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 keyboard_with_chose.add('Техническое')
 keyboard_with_chose.add('Гуманитарное')
 keyboard_with_chose.add('Гуманитарно-техническое')
