@@ -50,6 +50,10 @@ class PostFormatError(Exception):
     pass
 
 
+class UserNotInDataBase(Exception):
+    pass
+
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
     tel_id = message.from_user.id
@@ -120,35 +124,40 @@ def send_text(message):
 def send_text(message):
     print(message.text, message.from_user.id)
     tel_id = message.from_user.id
-    if tel_id in black_list:
-        return
-    if message.text.lower() == 'изменить направление' or message.text.lower() == 'выбрать направление':
-        bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
-                         reply_markup=keyboard_with_chose)
-    elif message.text.lower() == 'гуманитарное':
-        dictionary_of_users[tel_id][1] = list_pf_spec[0]
-        bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
-                         reply_markup=keyboard_answer)
-    elif message.text.lower() == 'техническое':
-        dictionary_of_users[tel_id][1] = list_pf_spec[1]
-        bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
-                         reply_markup=keyboard_answer)
-    elif message.text.lower() == 'гуманитарно-техническое':
-        dictionary_of_users[tel_id][1] = list_pf_spec[2]
-        bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарно-техническое направление?',
-                         reply_markup=keyboard_answer)
-    elif message.text.lower() == 'я тебя люблю':
-        bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
-    elif message.text.lower() == 'показать направление':
-        try:
-            if dictionary_of_users[tel_id][0]:
-                bot.send_message(message.chat.id, dictionary_of_users[tel_id][0])
-            else:
-                raise KeyError
-        except KeyError:
-            bot.send_message(message.chat.id, 'У вас нет текущего направления', reply_markup=keyboard_first)
-    else:
-        bot.send_message(message.chat.id, 'Я вас не понимаю')
+    try:
+        if not tel_id in dictionary_of_users.keys():
+            raise UserNotInDataBase
+        if tel_id in black_list:
+            return
+        if message.text.lower() == 'изменить направление' or message.text.lower() == 'выбрать направление':
+            bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
+                             reply_markup=keyboard_with_chose)
+        elif message.text.lower() == 'гуманитарное':
+            dictionary_of_users[tel_id][1] = list_pf_spec[0]
+            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
+                             reply_markup=keyboard_answer)
+        elif message.text.lower() == 'техническое':
+            dictionary_of_users[tel_id][1] = list_pf_spec[1]
+            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
+                             reply_markup=keyboard_answer)
+        elif message.text.lower() == 'гуманитарно-техническое':
+            dictionary_of_users[tel_id][1] = list_pf_spec[2]
+            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарно-техническое направление?',
+                             reply_markup=keyboard_answer)
+        elif message.text.lower() == 'я тебя люблю':
+            bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
+        elif message.text.lower() == 'показать направление':
+            try:
+                if dictionary_of_users[tel_id][0]:
+                    bot.send_message(message.chat.id, dictionary_of_users[tel_id][0])
+                else:
+                    raise KeyError
+            except KeyError:
+                bot.send_message(message.chat.id, 'У вас нет текущего направления', reply_markup=keyboard_first)
+        else:
+            bot.send_message(message.chat.id, 'Я вас не понимаю')
+    except UserNotInDataBase:
+        bot.send_message(message.chat.id, 'Вы не зарегистрированы, нажмите /start')
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -158,8 +167,7 @@ def callback_worker(call):
         if call.data == "yes":
             flag_prev, flag_new = dictionary_of_users[tel_id]
             if tel_id not in dictionary_of_users.keys():
-                bot.send_message(call.message.chat.id, 'Вы не зарегистрированы, нажмите /start',
-                                 reply_markup=keyboard_main)
+                raise UserNotInDataBase
             elif flag_new != flag_prev:
                 con = sqlite3.connect("user_names")
                 cur = con.cursor()
@@ -180,6 +188,8 @@ def callback_worker(call):
             bot.send_message(call.message.chat.id, 'Какое направление вы хотите выбрать',
                              reply_markup=keyboard_main)
         bot.delete_message(call.message.chat.id, call.message.message_id)
+    except UserNotInDataBase:
+        bot.send_message(call.message.chat.id, 'Вы не зарегистрированы, нажмите /start')
     except Exception as error:
         bot.send_message(call.message.chat.id,
                          'Что то пошло не так, скорее всего вы не зарегистрированы, нажмите /start')
