@@ -98,39 +98,45 @@ def send_text(message):
                 raise PostFormatError
             if 'гуманитарно-техническое' in message.text.split('\n')[0].lower():
                 for text in dictionary_of_users.keys():
-                    if dictionary_of_users[text]:
+                    if dictionary_of_users[text][0]:
                         bot.send_message(text,
                                          'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
                                                                                 '\n'.join(
                                                                                     message.text.split('\n')[1:])))
                     else:
                         bot.send_message(text,
-                                         'Новости по направлению гуманитарно-техническое\n{}'.format('\n'.join(
+                                         'Новости по направлению Гуманитарно-техническое\n{}'.format('\n'.join(
                                              message.text.split('\n')[1:])))
             elif 'техническое' in message.text.split('\n')[0].lower():
                 for text in dictionary_of_users.keys():
-                    if dictionary_of_users[text] and dictionary_of_users[text].lower() != 'гуманитарное':
+                    if dictionary_of_users[text][0] and dictionary_of_users[text].lower() != 'гуманитарное':
                         bot.send_message(text,
                                          'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
                                                                                 '\n'.join(
                                                                                     message.text.split('\n')[1:])))
                     else:
                         bot.send_message(text,
-                                         'Новости по направлению техническое\n{}'.format('\n'.join(
+                                         'Новости по направлению Техническое\n{}'.format('\n'.join(
                                              message.text.split('\n')[1:])))
             elif 'гуманитарное' in message.text.split('\n')[0].lower():
                 for text in dictionary_of_users.keys():
-                    if dictionary_of_users[text] and dictionary_of_users[text].lower() != 'техническое':
+                    if dictionary_of_users[text][0] and dictionary_of_users[text].lower() != 'техническое':
                         bot.send_message(text,
                                          'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
                                                                                 '\n'.join(
                                                                                     message.text.split('\n')[1:])))
                     else:
                         bot.send_message(text,
-                                         'Новости по направлению гуманитарное\n{}'.format('\n'.join(
+                                         'Новости по направлению Гуманитарное\n{}'.format('\n'.join(
                                              message.text.split('\n')[1:])))
             else:
                 raise WrongCategoryName
+        except WrongCategoryName:
+            bot.send_message(message.chat.id,
+                             'Ошибка: Неверное название направления, доступны:\n{} @working_specialty_bot'.format(
+                                 '\n'.join(list_pf_spec)))
+        except PostFormatError:
+            bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
         except Exception as error:
             bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
 
