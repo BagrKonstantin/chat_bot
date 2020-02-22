@@ -96,26 +96,41 @@ def send_text(message):
         try:
             if message.text.split('\n') == 1:
                 raise PostFormatError
-            result = []
-            con = sqlite3.connect("user_names")
-            cur = con.cursor()
             if 'гуманитарно-техническое' in message.text.split('\n')[0].lower():
-                result = cur.execute(
-                    "SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news").fetchall()
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text]:
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.text.split('\n')[1:])))
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению гуманитарно-техническое\n{}'.format('\n'.join(
+                                             message.text.split('\n')[1:])))
             elif 'техническое' in message.text.split('\n')[0].lower():
-                result = cur.execute(
-                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news 
-                    WHERE type_of_news = 'Техническое' OR type_of_news = 'Гуманитарно-техническое'""").fetchall()
-            elif 'гуманитарно' in message.text.split('\n')[0].lower():
-                result = cur.execute(
-                    """SELECT id_in_telegram, type_of_news FROM users_id_and_type_of_news 
-                    WHERE type_of_news = 'Гуманитарное' OR type_of_news = 'Гуманитарно-техническое'""").fetchall()
-            if not len(result):
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text] and dictionary_of_users[text].lower() != 'гуманитарное':
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.text.split('\n')[1:])))
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению техническое\n{}'.format('\n'.join(
+                                             message.text.split('\n')[1:])))
+            elif 'гуманитарное' in message.text.split('\n')[0].lower():
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text] and dictionary_of_users[text].lower() != 'техническое':
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.text.split('\n')[1:])))
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению гуманитарное\n{}'.format('\n'.join(
+                                             message.text.split('\n')[1:])))
+            else:
                 raise WrongCategoryName
-            for i in result:
-                bot.send_message(i[0],
-                                 'Новости по направлению {}\n{}'.format(i[1], '\n'.join(message.text.split('\n')[1:])))
-            bot.send_message(message.chat.id, 'Сообщение отправлено @working_specialty_bot')
         except Exception as error:
             bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
 
