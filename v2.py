@@ -54,6 +54,9 @@ class UserNotInDataBase(Exception):
     pass
 
 
+bot.send_message(171303452, 'Бот запущен')
+
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
     tel_id = message.from_user.id
@@ -146,7 +149,7 @@ def send_text(message):
     print(message.text, message.from_user.id)
     tel_id = message.from_user.id
     try:
-        if not tel_id in dictionary_of_users.keys():
+        if tel_id not in dictionary_of_users.keys():
             raise UserNotInDataBase
         if tel_id in black_list:
             return
@@ -214,7 +217,7 @@ def callback_worker(call):
     except Exception as error:
         bot.send_message(call.message.chat.id,
                          'Что то пошло не так, скорее всего вы не зарегистрированы, нажмите /start')
-        print(error)
+        print(error.__class__.__name__)
 
 
 @bot.message_handler(content_types=['sticker'])
@@ -225,4 +228,4 @@ def sticker_id(message):
 try:
     bot.polling(none_stop=True, interval=0)
 except Exception as er:
-    print(er)
+    print(er.__class__.__name__)
