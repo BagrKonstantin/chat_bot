@@ -142,6 +142,69 @@ def send_text(message):
             bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
         except Exception as error:
             bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
+    else:
+        bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
+
+
+@bot.channel_post_handler(content_types=['video'])
+def send_video(message):
+    if '/post' in message.caption.split('\n')[0]:
+        try:
+            if message.caption.split('\n') == 1:
+                raise PostFormatError
+            if 'гуманитарно-техническое' in message.caption.split('\n')[0].lower():
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text][0]:
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению Гуманитарно-техническое\n{}'.format('\n'.join(
+                                             message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+            elif 'техническое' in message.caption.split('\n')[0].lower():
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text][0] and dictionary_of_users[text].lower() != 'гуманитарное':
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению Техническое\n{}'.format('\n'.join(
+                                             message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+            elif 'гуманитарное' in message.caption.split('\n')[0].lower():
+                for text in dictionary_of_users.keys():
+                    if dictionary_of_users[text][0] and dictionary_of_users[text].lower() != 'техническое':
+                        bot.send_message(text,
+                                         'Новости по направлению {}\n{}'.format(dictionary_of_users[text][0],
+                                                                                '\n'.join(
+                                                                                    message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+                    else:
+                        bot.send_message(text,
+                                         'Новости по направлению Гуманитарное\n{}'.format('\n'.join(
+                                             message.caption.split('\n')[1:])))
+                        bot.send_video(dictionary_of_users[text][0], message.video.file_id)
+            else:
+                raise WrongCategoryName
+        except WrongCategoryName:
+            bot.send_message(message.chat.id,
+                             'Ошибка: Неверное название направления, доступны:\n{} @working_specialty_bot'.format(
+                                 '\n'.join(list_pf_spec)))
+        except PostFormatError:
+            bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
+        except Exception as error:
+            bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
+    else:
+        bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
+    bot.send_video(171303452, message.video.file_id)
+    bot.send_message(171303452, message.caption)
 
 
 @bot.message_handler(content_types=['text'])
