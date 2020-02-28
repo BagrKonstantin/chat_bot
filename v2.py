@@ -1,19 +1,12 @@
 import telebot
 from telebot import types
 import sqlite3
-from random import choice
 
 bot = telebot.TeleBot('1054926363:AAFIizR6JDjoe4TJtmmocU0zIbiYtLYPWqA')
 
 keyboard_main = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard_main.add('Изменить направление')
 keyboard_main.add('Показать направление')
-keyboard_main.add('Примеры профессий')
-
-keyboard_prof = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-keyboard_prof.add('Технические профессии')
-keyboard_prof.add('Гуманитарные профессии')
-keyboard_prof.add('Назад')
 
 keyboard_first = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 keyboard_first.add('Выбрать направление')
@@ -35,6 +28,8 @@ list_of_gum_prof = ['Юрист', 'Менеджер', 'Маркетолог', '�
 list_of_tex_prof = ['Электрик', 'Энергетик', 'Токарь', 'Технолог', 'Строитель', 'Столяр', 'Слесарь-сборщик',
                     'Программист', 'Нанотехнолог', 'Механик', 'Монтажник', 'Бурильщик', 'Архитектор', 'Контролёр ОТК',
                     'Обработчик металла', 'Радиоинженер', 'Связист']
+list_of_gum_tex_prof = ['Юрист', 'Программист', 'Дизайнер', 'Радиоинженер', 'Педагог', 'Архитектор', 'Переводчик',
+                        'Связист', 'Фотограф', 'Психолог', 'Журналист', 'Видео-оператор', 'Нанотехнолог', 'Кондитер']
 black_list = [799056502]
 
 dictionary_of_users = {}
@@ -106,8 +101,8 @@ def start_message(message):
 
 @bot.channel_post_handler(content_types=['text'])
 def send_text(message):
-    if '/post' in message.text.split('\n')[0]:
-        try:
+    try:
+        if '/post' in message.text.split('\n')[0]:
             if len(message.text.split('\n')) == 1:
                 raise PostFormatError
             if 'гуманитарно-техническое' in message.text.split('\n')[0].lower():
@@ -145,16 +140,25 @@ def send_text(message):
                                              message.text.split('\n')[1:])))
             else:
                 raise WrongCategoryName
-        except WrongCategoryName:
-            bot.send_message(message.chat.id,
-                             'Ошибка: Неверное название направления, доступны:\n{} @working_specialty_bot'.format(
-                                 '\n'.join(list_pf_spec)))
-        except PostFormatError:
-            bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
-        except Exception as error:
-            bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
-    else:
-        bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
+
+        elif '/prof' in message.text:
+            for text in dictionary_of_users.keys():
+                if dictionary_of_users[text][0] == 'Гуманитарное':
+                    bot.send_message(text, '\n'.join(list_of_gum_prof))
+                elif dictionary_of_users[text][0] == 'Техническое':
+                    bot.send_message(text, '\n'.join(list_of_tex_prof))
+                else:
+                    bot.send_message(text, '\n'.join(list_of_gum_tex_prof))
+        else:
+            bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
+    except WrongCategoryName:
+        bot.send_message(message.chat.id,
+                         'Ошибка: Неверное название направления, доступны:\n{} @working_specialty_bot'.format(
+                             '\n'.join(list_pf_spec)))
+    except PostFormatError:
+        bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
+    except Exception as error:
+        bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
 
 
 @bot.channel_post_handler(content_types=['video'])
@@ -198,16 +202,6 @@ def send_text(message):
         if message.text.lower() == 'изменить направление' or message.text.lower() == 'выбрать направление':
             bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
                              reply_markup=keyboard_with_chose)
-        elif message.text.lower() == 'примеры профессий':
-            bot.send_message(message.chat.id, 'Примеры каких профессий вы хотите увидеть?',
-                             reply_markup=keyboard_prof)
-        elif message.text.lower() == 'назад':
-            bot.send_message(message.chat.id, 'Списки профессий будут пополняться',
-                             reply_markup=keyboard_main)
-        elif message.text.lower() == 'технические профессии':
-            bot.send_message(message.chat.id, '{}'.format(choice(list_of_tex_prof)))
-        elif message.text.lower() == 'гуманитарные профессии':
-            bot.send_message(message.chat.id, '{}'.format(choice(list_of_gum_prof)))
         elif message.text.lower() == 'гуманитарное':
             dictionary_of_users[tel_id][1] = list_pf_spec[0]
             bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
