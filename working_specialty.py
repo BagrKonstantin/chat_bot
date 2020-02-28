@@ -213,6 +213,8 @@ def send_video(message):
                         bot.send_video(text, message.video.file_id)
             else:
                 raise WrongCategoryName
+        else:
+            bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
     except WrongCategoryName:
         bot.send_message(message.chat.id,
                          'Ошибка: Неверное название направления, доступны:\n{} @working_specialty_bot'.format(
@@ -221,8 +223,6 @@ def send_video(message):
         bot.send_message(message.chat.id, 'Ошибка: Неверный формат')
     except Exception as error:
         bot.send_message(message.chat.id, 'Ошибка: {} @working_specialty_bot'.format(error.__class__.__name__))
-    else:
-        bot.send_message(message.chat.id, 'Введите /post для отправки новостей @working_specialty_bot')
 
 
 @bot.message_handler(content_types=['text'])
@@ -284,6 +284,7 @@ def callback_worker(call):
                         dictionary_of_users[tel_id].change, tel_id))
                 dictionary_of_users[tel_id].swap()
                 con.commit()
+                con.close()
                 bot.send_message(call.message.chat.id,
                                  'Хорошо, вам будут приходить новости по направлению {}'.format(
                                      dictionary_of_users[tel_id].specialization),
@@ -293,7 +294,6 @@ def callback_worker(call):
                                      'Рекомендуем посмотреть видео по одной из технических профессий')
                     bot.send_video(call.message.chat.id,
                                    'BAACAgIAAx0CVANKZAADoV5Wf_xLLMkF2WLQ5Qkx0IT7b64bAALfBAACNYywSlV9_MST0M9UGAQ')
-                con.close()
             else:
                 bot.send_message(call.message.chat.id, 'У вас уже выбранно данное направление',
                                  reply_markup=keyboard_main)
