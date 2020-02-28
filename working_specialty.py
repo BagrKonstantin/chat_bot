@@ -289,11 +289,14 @@ def callback_worker(call):
                                  'Хорошо, вам будут приходить новости по направлению {}'.format(
                                      dictionary_of_users[tel_id].specialization),
                                  reply_markup=keyboard_main)
+                bot.send_message(call.message.chat.id,
+                                 'Рекомендуем посмотреть видео по одной из профессий')
                 if dictionary_of_users[tel_id].specialization.lower() != 'гуманитарное':
-                    bot.send_message(call.message.chat.id,
-                                     'Рекомендуем посмотреть видео по одной из технических профессий')
                     bot.send_video(call.message.chat.id,
                                    'BAACAgIAAx0CVANKZAADoV5Wf_xLLMkF2WLQ5Qkx0IT7b64bAALfBAACNYywSlV9_MST0M9UGAQ')
+                else:
+                    bot.send_video(call.message.chat.id,
+                                   'BAACAgIAAx0CVANKZAADrV5ZiK-PITMmF7BO0CKULTsAAR2n-wACEwYAAp0KyErADvHtIRWFqxgE')
             else:
                 bot.send_message(call.message.chat.id, 'У вас уже выбранно данное направление',
                                  reply_markup=keyboard_main)
