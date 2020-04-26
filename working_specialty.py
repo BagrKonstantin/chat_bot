@@ -8,6 +8,10 @@ keyboard_main = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 keyboard_main.add('Изменить направление')
 keyboard_main.add('Показать направление')
 
+markup_request = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+markup_request.add(telebot.types.KeyboardButton('Ввести часовай пояс самому'))
+markup_request.add(telebot.types.KeyboardButton('Отправить свою локацию 🗺️', request_location=True))
+
 keyboard_first = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 keyboard_first.add('Выбрать направление')
 
@@ -227,46 +231,12 @@ def send_video(message):
 
 @bot.message_handler(content_types=['text'])
 def send_text(message):
-    tel_id = message.from_user.id
+    bot.send_message(message.chat.id, 'Выбери', reply_markup=markup_request)
     try:
-        if tel_id not in dictionary_of_users.keys():
-            raise UserNotInDataBase
-        if dictionary_of_users[tel_id].ban:
-            return
-        else:
-            dictionary_of_users[tel_id].update_ban()
-        print(message.text, dictionary_of_users[tel_id].name, dictionary_of_users[tel_id].messages)
-        if message.text.lower() == 'изменить направление' or message.text.lower() == 'выбрать направление':
-            bot.send_message(message.chat.id, 'Какое направление вы хотите выбрать?',
-                             reply_markup=keyboard_with_chose)
-        elif message.text.lower() == 'гуманитарное':
-            dictionary_of_users[tel_id].change = list_pf_spec[0]
-            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарное направление?',
-                             reply_markup=keyboard_answer)
-        elif message.text.lower() == 'техническое':
-            dictionary_of_users[tel_id].change = list_pf_spec[1]
-            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать техническое направление?',
-                             reply_markup=keyboard_answer)
-        elif message.text.lower() == 'гуманитарно-техническое':
-            dictionary_of_users[tel_id].change = list_pf_spec[2]
-            bot.send_message(message.chat.id, 'Вы уверены что хотите выбрать гуманитарно-техническое направление?',
-                             reply_markup=keyboard_answer)
-        elif message.text.lower() == 'я тебя люблю':
-            bot.send_sticker(message.chat.id, 'CAADAgADZgkAAnlc4gmfCor5YbYYRAI')
-        elif message.text.lower() == 'показать направление':
-            try:
-                if dictionary_of_users[tel_id].specialization:
-                    bot.send_message(message.chat.id, dictionary_of_users[tel_id].specialization)
-                else:
-                    raise KeyError
-            except KeyError:
-                bot.send_message(message.chat.id, 'У вас нет текущего направления', reply_markup=keyboard_first)
-        else:
-            bot.send_message(message.chat.id, 'Я вас не понимаю')
-    except UserNotInDataBase:
-        bot.send_message(message.chat.id, 'Вы не зарегистрированы, нажмите /start')
-    except Exception as error:
-        print(error.__class__.__name__)
+        bot.send_message(message.chat.id, message.location)
+    except Exception:
+        pass
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
